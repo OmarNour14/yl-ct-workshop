@@ -41,13 +41,9 @@ Before we begin, please review the following guidelines.
 
 You should have received credentials structured as follows:
 
-### 🔐 Credentials
-
-You should have received credentials structured as follows:
-
-| User Name | User Email | Password | Access Key (Mgmt Account) | Secret Key (Mgmt Account) | SSO Console Link | Terraform State Bucket |
-|-----------|------------|----------|----------------------------|----------------------------|------------------|------------------------|
-| *TBD*     | *TBD*      | *TBD*    | *TBD*                      | *TBD*                      | *TBD*            | *TBD*                  |
+| User Name | User Email | Password | Access Key (Mgmt Account) | Secret Key (Mgmt Account) | SSO Console Link | Terraform State Bucket | Teleport Sign-In Link |
+|-----------|------------|----------|----------------------------|----------------------------|------------------|------------------------|------------------------|
+| *TBD*     | *TBD*      | *TBD*    | *TBD*                      | *TBD*                      | *TBD*            | *TBD*                  | *TBD*                  |               |
 ---
 
 ### ✅ Dos
@@ -205,7 +201,7 @@ make
 
 ---
 
-## Step 1 - 🔧 AWS CLI Setup
+## Step 1 - 🔧 Setup
 
 If you haven’t already, run the following command and provide your credentials when prompted:
 
@@ -219,3 +215,139 @@ Use these values when prompted:
 * **AWS Secret Access Key**: *\[provided to you]*
 * **Default region name**: `eu-west-1`
 * **Default output format**: `json`
+
+```sh
+az login
+```
+This will open a browser window. Select "Sign in with another account", then log in with the Azure credentials provided to you via Entra ID. Use the email provided to you.
+
+![Entra ID Login](assets/entra-login.png)
+
+
+---
+
+### 🔍 Replace S3 Bucket Reference
+
+Once configured, use your IDE to perform a **global search** for:
+
+```
+{{REPLACE_WITH_S3_BUCKET}}
+```
+
+Replace it with the actual **S3 bucket name** provided to you (e.g., `tfstate-control-tower-abc123`).
+
+Alternatively, here’s how to do it using `find` and `sed` in bash:
+
+```sh
+find . -type f -name "*.tf" -exec sed -i '' 's/{{REPLACE_WITH_S3_BUCKET}}/tfstate-control-tower-abc123/g' {} +
+```
+
+> ⚠️ Make sure to use the actual bucket name provided to you instead of `tfstate-control-tower-abc123`.
+
+---
+
+### 📂 Create Your `terraform.tfvars`
+
+Duplicate the example file and rename it:
+
+```sh
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Then update the values inside with **your email**.
+
+* Keep the `+` symbol in the email (e.g., `john.doe+security@example.com`) as it leverages the **subaddressing** feature.
+
+```hcl
+security_account_email   = "your+security@email.com"
+logging_account_email    = "your+logging@email.com"
+```
+---
+## Step 2 - IAM with Teleport
+
+With Control Tower running, we now want to start logging into the AWS accounts it manages. For this, we use **Teleport** as our identity broker to securely authenticate users through **Azure Entra ID**, and then into AWS.
+
+---
+
+### 📁 Navigate to the IAM Auth Module
+
+Change to the directory:
+
+```sh
+cd ./04-iam-auth
+```
+
+You’ll find a file named `terraform.tfvars.example`. Copy and rename it:
+
+```sh
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Update the values with those provided to you. Here's a template:
+
+```hcl
+john_user_email    = "user+john@email.com"
+jane_user_email    = "user+jane@email.com"
+teleport_saml      = "https://REPLACE_WITH_TENANT.teleport.sh:443/v1/webapi/saml/acs/ad"
+```
+
+> ℹ️ You can replace `john` and `jane` with any usernames you choose. We recommend using your YouLend email for at least one to test different access scenarios.
+
+---
+
+### 🚀 Deploy IAM Roles via Terraform
+
+Run the following commands:
+
+```sh
+terraform init
+terraform apply --auto-approve
+```
+
+This will:
+
+* Generate IAM users with group-based permissions for access control testing
+* Create an Enterprise Application in Microsoft Entra ID
+* Attach the IAM users to that application
+
+The output should include a link like this — **save it**:
+
+```
+https://d-92312321321.awsapps.com/
+```
+
+---
+
+### 🛠️ Complete Manual Configuration in Teleport
+
+1. **Sign in** to your Teleport tenant using the link provided.
+2. Follow the official Teleport guide here: [Azure AD SAML Setup - Step 2/3](https://goteleport.com/docs/admin-guides/access-controls/sso/azuread/#prerequisites)
+3. Then, complete the IAM Identity Center setup via: [AWS IAM Identity Center Guide](https://goteleport.com/docs/admin-guides/management/guides/aws-iam-identity-center/guide/)
+
+---
+
+### ✅ Logging in via Teleport
+
+Once everything is set up:
+
+* Go to the **AWS SSO link** output by Terraform.
+* You’ll be redirected to **Teleport**.
+* Choose **Login with Entra ID**.
+* Use the Azure AD account provided to you.
+* After authentication, you'll land on the AWS SSO homepage.
+
+You are now ready to access your AWS accounts with proper role-based access through Teleport!
+
+---
+
+### 🔍 Validate Role-Based Access
+
+Using the details from [Teleport's guide on creating custom Identity Center roles](https://goteleport.com/docs/admin-guides/management/guides/aws-iam-identity-center/guide/#creating-custom-identity-center-roles), you can assign different permission levels to the two IAM users.
+
+To test this:
+
+* Open a new **Incognito window**
+* Log into Teleport using each user’s email address
+* Since they’re automatically assigned to the Enterprise application by Terraform, **no manual assignment is required**
+
+You should see that each user only has access to resources based on their assigned IAM roles.
