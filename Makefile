@@ -4,9 +4,14 @@ ORG_DIR := 02-aws-organizations
 CT_DIR := 03-control-tower
 TFVARS := terraform.tfvars
 
-.PHONY: all validate-vars copy-vars init-backend update-backends plan-apply-org plan-apply-ct cleanup
+.PHONY: all validate-vars copy-vars init-backend update-backends plan-apply-org plan-apply-ct cleanup force-all
 
-all: validate-vars copy-vars init-backend update-backends plan-apply-org plan-apply-ct cleanup
+# Run all steps and always cleanup at the end
+all:
+	@$(MAKE) force-all || true; $(MAKE) cleanup
+
+# Main pipeline logic
+force-all: validate-vars copy-vars init-backend update-backends plan-apply-org plan-apply-ct
 
 validate-vars:
 	@if [ ! -f $(TFVARS) ]; then \
@@ -50,13 +55,13 @@ plan-apply-ct:
 
 cleanup:
 	@echo "🧹 Running cleanup..."
-	# Remove terraform lock files
-	rm -f $(ORG_DIR)/.terraform.lock.hcl $(CT_DIR)/.terraform.lock.hcl
-	@echo "🗑️  Deleted .terraform.lock.hcl files"
 
-	# Revert backend.tf files to placeholder
-	sed -i "" "s/bucket = \".*\"/bucket = \"{{REPLACE_WITH_S3_BUCKET}}\"/g" $(ORG_DIR)/backend.tf
-	sed -i "" "s/bucket = \".*\"/bucket = \"{{REPLACE_WITH_S3_BUCKET}}\"/g" $(CT_DIR)/backend.tf
-	@echo "🔁 Reverted backend.tf bucket names to '{{REPLACE_WITH_S3_BUCKET}}'"
+	@rm -f $(ORG_DIR)/.terraform.lock.hcl $(CT_DIR)/.terraform.lock.hcl
+	@rm -rf $(ORG_DIR)/.terraform $(CT_DIR)/.terraform
 
+	@sed -i "" "s/bucket = \"tfstate-controltower[^\"]*\"/bucket = \"{{REPLACE_WITH_S3_BUCKET}}\"/g" $(ORG_DIR)/backend.tf
+	@sed -i "" "s/bucket = \"tfstate-controltower[^\"]*\"/bucket = \"{{REPLACE_WITH_S3_BUCKET}}\"/g" $(CT_DIR)/backend.tf
+
+	@echo "✅ .terraform and lock files removed"
+	@echo "🔁 Reverted bucket names in backend.tf"
 	@echo "✅ Cleanup completed successfully."
