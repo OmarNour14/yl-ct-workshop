@@ -4,9 +4,9 @@ ORG_DIR := 02-aws-organizations
 CT_DIR := 03-control-tower
 TFVARS := terraform.tfvars
 
-.PHONY: all validate-vars copy-vars init-backend update-backends plan-apply-org plan-apply-ct
+.PHONY: all validate-vars copy-vars init-backend update-backends plan-apply-org plan-apply-ct cleanup
 
-all: validate-vars copy-vars init-backend update-backends plan-apply-org plan-apply-ct
+all: validate-vars copy-vars init-backend update-backends plan-apply-org plan-apply-ct cleanup
 
 validate-vars:
 	@if [ ! -f $(TFVARS) ]; then \
@@ -30,13 +30,15 @@ copy-vars:
 
 init-backend:
 	cd $(BACKEND_DIR) && terraform init && terraform apply -auto-approve
-	$(eval BUCKET_NAME := $(shell terraform -chdir=$(BACKEND_DIR) output -raw bucket_name))
-	@echo "✅ S3 bucket created: $(BUCKET_NAME)"
+	@terraform -chdir=$(BACKEND_DIR) output -raw bucket_name > .bucket_name
+	@echo "✅ S3 bucket created: $$(cat .bucket_name)"
 
 update-backends:
-	sed -i.bak "s/{{REPLACE_WITH_S3_BUCKET}}/$(BUCKET_NAME)/g" $(ORG_DIR)/terraform.tf
-	sed -i.bak "s/{{REPLACE_WITH_S3_BUCKET}}/$(BUCKET_NAME)/g" $(CT_DIR)/terraform.tf
-	@echo "✅ Updated terraform.tf files with backend bucket."
+	@BUCKET_NAME=$$(cat .bucket_name); \
+	echo "📦 Using bucket: $$BUCKET_NAME"; \
+	sed -i "" "s/{{REPLACE_WITH_S3_BUCKET}}/$$BUCKET_NAME/g" $(ORG_DIR)/backend.tf; \
+	sed -i "" "s/{{REPLACE_WITH_S3_BUCKET}}/$$BUCKET_NAME/g" $(CT_DIR)/backend.tf; \
+	echo "✅ Updated backend.tf files with backend bucket: $$BUCKET_NAME"
 
 plan-apply-org:
 	cd $(ORG_DIR) && terraform init && terraform plan -var-file=terraform.tfvars && terraform apply -var-file=terraform.tfvars -auto-approve
@@ -45,3 +47,16 @@ plan-apply-org:
 plan-apply-ct:
 	cd $(CT_DIR) && terraform init && terraform plan -var-file=terraform.tfvars && terraform apply -var-file=terraform.tfvars -auto-approve
 	@echo "✅ Applied Terraform for control-tower."
+
+cleanup:
+	@echo "🧹 Running cleanup..."
+	# Remove terraform lock files
+	rm -f $(ORG_DIR)/.terraform.lock.hcl $(CT_DIR)/.terraform.lock.hcl
+	@echo "🗑️  Deleted .terraform.lock.hcl files"
+
+	# Revert backend.tf files to placeholder
+	sed -i "" "s/bucket = \".*\"/bucket = \"{{REPLACE_WITH_S3_BUCKET}}\"/g" $(ORG_DIR)/backend.tf
+	sed -i "" "s/bucket = \".*\"/bucket = \"{{REPLACE_WITH_S3_BUCKET}}\"/g" $(CT_DIR)/backend.tf
+	@echo "🔁 Reverted backend.tf bucket names to '{{REPLACE_WITH_S3_BUCKET}}'"
+
+	@echo "✅ Cleanup completed successfully."
