@@ -384,3 +384,65 @@ This will:
 * Deploy a **CloudFormation stack** to enroll the Platform OU and account into AWS Control Tower
 
 After this step, any resources or policies defined within Control Tower will automatically apply to the new OU.
+
+---
+
+## Step 4 - Control Tower Controls
+
+AWS Control Tower provides multiple types of **Controls** to help govern AWS accounts:
+
+* **Detective Controls** *(Config rules)*: Monitor and alert on policy violations
+* **Proactive Controls** *(Hooks)*: Validate infrastructure **before** deployment using CloudFormation Guard (only applicable to CloudFormation stacks)
+* **Preventive Controls** *(SCPs)*: Block restricted actions at the org level outright
+
+Controls can be targeted by service, account, or audit requirement.
+
+---
+
+### 📁 Navigate to the Controls Module
+
+Change to the directory:
+
+```sh
+cd ./06-controls
+```
+
+Run the following to deploy the control rules:
+
+```sh
+terraform init
+terraform apply --auto-approve
+```
+
+This will deploy all three types of controls to the **AWS Production Account** in the **Product OU**.
+
+---
+
+### 🔍 Validate the Controls
+
+After the controls are deployed:
+
+1. Log in to the **AWS SSO console**
+2. Generate **temporary credentials** for the AWS Production Account
+3. Add them to your `~/.aws/credentials` file under a new profile:
+
+```ini
+[production]
+aws_access_key_id = AKXXXXXXXXXXXXXXXX
+aws_secret_access_key = UzJXXXXXXXXXXX
+```
+
+4. Navigate back to the `./06-controls` directory
+
+5. Un-comment the following blocks in your code:
+
+   * The `module "control_tower_controls_validation"` block in `main.tf`
+   * The `provider "aws"` block in `terraform.tf`
+
+6. Re-run Terraform:
+
+```sh
+terraform apply --auto-approve
+```
+
+You should observe **failures and errors** triggered by the controls — we’ll walk through and discuss them together during the live session.
