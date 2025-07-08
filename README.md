@@ -246,23 +246,6 @@ find . -type f -name "*.tf" -exec sed -i '' 's/{{REPLACE_WITH_S3_BUCKET}}/tfstat
 
 ---
 
-### 📂 Create Your `terraform.tfvars`
-
-Duplicate the example file and rename it:
-
-```sh
-cp terraform.tfvars.example terraform.tfvars
-```
-
-Then update the values inside with **your email**.
-
-* Keep the `+` symbol in the email (e.g., `john.doe+security@example.com`) as it leverages the **subaddressing** feature.
-
-```hcl
-security_account_email   = "your+security@email.com"
-logging_account_email    = "your+logging@email.com"
-```
----
 ## Step 2 - IAM with Teleport
 
 With Control Tower running, we now want to start logging into the AWS accounts it manages. For this, we use **Teleport** as our identity broker to securely authenticate users through **Azure Entra ID**, and then into AWS.
@@ -351,3 +334,53 @@ To test this:
 * Since they’re automatically assigned to the Enterprise application by Terraform, **no manual assignment is required**
 
 You should see that each user only has access to resources based on their assigned IAM roles.
+
+---
+## Step 3 - Baselining OU
+
+By default, when you create an Organizational Unit (OU) in AWS Organizations, it is **not** enrolled into Control Tower. In this step, we'll establish a baseline so that each new OU gets enrolled into Control Tower with a consistent set of controls and guardrails.
+
+We achieve this using a **CloudFormation stack** that is deployed and managed via Terraform.
+
+---
+
+### 📁 Navigate to OU Baseline Module
+
+Change to the directory:
+
+```sh
+cd ./05-baseline-ou
+```
+
+You’ll find a file named `terraform.tfvars.example`. Copy and rename it:
+
+```sh
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Update the values with those provided to you. Here's a template:
+
+```hcl
+platform_account_email = "user+platform@email.me"
+```
+
+> ℹ️ Keep the `+` symbol in the email (e.g., `john.doe+platform@example.com`) to utilize **email subaddressing**.
+
+---
+
+### 🚀 Deploy via Terraform
+
+Run the following:
+
+```sh
+terraform init
+terraform apply --auto-approve
+```
+
+This will:
+
+* Create a new OU called **Platform**
+* Register a new **Platform Account** within that OU
+* Deploy a **CloudFormation stack** to enroll the Platform OU and account into AWS Control Tower
+
+After this step, any resources or policies defined within Control Tower will automatically apply to the new OU.
