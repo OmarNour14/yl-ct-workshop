@@ -41,10 +41,9 @@ Before we begin, please review the following guidelines.
 
 You should have received credentials structured as follows:
 
-| User Name | User Email | Password | Access Key (Mgmt Account) | Secret Key (Mgmt Account) | SSO Console Link | Terraform State Bucket | Teleport Sign-In Link |
-|-----------|------------|----------|----------------------------|----------------------------|------------------|------------------------|------------------------|
-| *TBD*     | *TBD*      | *TBD*    | *TBD*                      | *TBD*                      | *TBD*            | *TBD*                  | *TBD*                  |               |
----
+| User Name | User Email | Password | Access Key (Mgmt Account) | Secret Key (Mgmt Account) | SSO Console Link | Terraform State Bucket | Teleport Sign-In Link | Slack Workspace | Datadog Sign-In Link |
+|-----------|------------|----------|----------------------------|----------------------------|------------------|------------------------|------------------------|------------------|------------------------|
+| *TBD*     | *TBD*      | *TBD*    | *TBD*                      | *TBD*                      | *TBD*            | *TBD*                  | *TBD*                  | *TBD*            | *TBD*                  |
 
 ### ✅ Dos
 
@@ -56,7 +55,9 @@ You should have received credentials structured as follows:
 ### ❌ Don’ts
 
 * Do **not change** any credentials.
+* Do **not change** any code, unless instructed to as this can cause errors.
 * Do **not deploy** resources beyond the defined scope.
+
 
 ---
 
@@ -69,7 +70,7 @@ You should have received credentials structured as follows:
 * Control Tower Launch (Wizard vs. Terraform)
 * Identity & Access Management (Teleport & Azure AD)
 * OU Baselining
-* Detective & Preventive Controls
+* Applying Control Tower Controls
 
 ---
 
@@ -446,3 +447,14 @@ terraform apply --auto-approve
 ```
 
 You should observe **failures and errors** triggered by the controls — we’ll walk through and discuss them together during the live session.
+
+---
+## Step 5 - Security Foundations
+In this section, we will be deploying AWS Security Services into our AWS Accounts and leveraging the AWS Control Tower and Organizations set up to have full monitoring of what is happening within those accounts.
+To proceed with this section you will need CLI access to the Security Account.
+I advise to create a dedicated IAM user with AWS CLI acccess with an Adminstrator mabnaged policy attached ( Follow along with Hosts to see the set up).
+Once created, paste the content in the .aws/credentials folder with a profile name called security
+Alternatively you can utilise the same method we did above with the production account and fetch short lived credentials with the Control Tower and paste them into the .aws/credentials with a security name.
+This module is quite large so the credentials might expire during the expelenations so if that happens, you will need to re-fetch the crednetials.
+once done.
+cd ./07-security-foundations
