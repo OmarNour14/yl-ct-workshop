@@ -897,7 +897,7 @@ You should then receive a **Slack alert** in the configured channel — confirmi
 
 ---
 
-### 🔄 How AFT Works
+#### 🔄 How AFT Works
 
 The provisioning flow moves from **left to right** as follows:
 
@@ -911,7 +911,7 @@ The provisioning flow moves from **left to right** as follows:
 
 ---
 
-### 📁 Navigate to the AFT Setup Folder
+#### 📁 Navigate to the AFT Setup Folder
 
 ```sh
 cd ./08-aft-setup
@@ -937,7 +937,7 @@ github_organization      = "MY_GITHUB_ORG_NAME"
 
 ---
 
-### 📂 Review the AFT Repositories Structure
+#### 📂 Review the AFT Repositories Structure
 
 ```txt
 ./08-aft-setup/aft-repos
@@ -1063,3 +1063,63 @@ In `locals.tf`, make sure to define the `customizations_name` — this tag is cr
 4. Then check your **Management Account** — the **Development Account** should appear as provisioning starts
 
 This confirms your AFT setup is working end-to-end for both **account creation** and **importing existing accounts**.
+
+---
+### 3. Customizing AFT Accounts
+
+Now that our AWS accounts are fully managed by AFT, we can start applying **customizations per account** via the AFT pipeline.
+
+#### 📁 Navigate to Customizations Folder
+
+```sh
+cd ./010-aft-account-customizations
+```
+
+Inside, you’ll see two folders:
+
+* `DEVELOPMENT`
+* `PRODUCTION`
+
+> 📝 The folder names **must match** the `customizations_name` value defined in your earlier AFT account request (case sensitive).
+
+Copy these folders into your **`aft-account-customizations`** GitHub repository and **merge into `main`**.
+
+#### 🎯 What This Deploys
+
+For **Development** and **Production** accounts:
+
+1. An **AWS Budget**
+
+   * \$50 in Development
+   * \$100 in Production
+2. A Terraform module: `yl-finance-infra`
+
+   * This simulates deployment infrastructure for a React-based company application
+
+#### 🚀 Run Customizations via Step Function
+
+By default, AFT customizations only run **at account creation time**.
+To apply them post-deployment, we trigger them manually using AWS Step Functions:
+
+1. Navigate to **Step Functions** in the **Platform Account**
+2. Select the state machine named: `aft-invoke-customisations`
+3. Click **Start Execution**, and use this JSON input:
+
+```json
+{
+  "include": [
+    {
+      "type": "ous",
+      "target_value": [ "Product"]
+    }
+  ]
+}
+```
+
+4. Monitor the execution and associated **CodePipeline runs** in the Platform Account
+5. Check both **Development** and **Production accounts** for the results
+
+#### 🌐 OPTIONAL - React App Deployment
+
+To fully deploy the simulated React app, follow the instructions in this guide:
+👉 [OmarFinance React App - GitHub](https://github.com/onoureldin14/OmarFinance-React-App/blob/main/README.md)
