@@ -5,16 +5,6 @@ variable "organization_accounts" {
     email = string
     ou    = optional(string)
   }))
-  default = {
-    security = {
-      name  = "Security Account"
-      email = "security@example.com"
-    }
-    logging = {
-      name  = "Logging Account"
-      email = "logging@example.com"
-    }
-  }
 }
 variable "organizational_units" {
   description = "List of OUs to create under the root"
@@ -22,5 +12,4 @@ variable "organizational_units" {
     name      = string
     parent_id = optional(string) # Optional parent ID for nested OUs
   }))
-  default = {}
 }
