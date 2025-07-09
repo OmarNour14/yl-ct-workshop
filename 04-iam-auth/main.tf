@@ -16,7 +16,7 @@ module "aws_identity_with_sso" {
 module "teleport_azuread_app" {
   count             = var.enable_teleport ? 1 : 0
   source            = "./modules/azure-ad"
-  prefix            = var.teleport_app_prefix
+  user_first_name   = var.user_first_name
   application_type  = "teleport"
   saml_entity_id    = var.teleport_saml
   saml_acs          = var.teleport_saml

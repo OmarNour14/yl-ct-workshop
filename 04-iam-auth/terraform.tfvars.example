@@ -1,3 +1,2 @@
-john_user_email    = "user+john@email.com"
-jane_user_email    = "user+jane@email.com"
+user_first_name    = "omar"
 teleport_saml      = "https://REPLACE_WITH_TENANT.teleport.sh:443/v1/webapi/saml/acs/ad"

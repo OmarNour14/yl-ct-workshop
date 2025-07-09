@@ -1,22 +1,23 @@
 locals {
+  suffix = random_pet.user_suffix.id
   identity_users = {
     jane = {
-      user_principal_name = var.jane_user_email
-      display_name        = "Jane Smith"
+      user_principal_name = "jane.smith.${local.suffix}@example.com"
+      display_name        = "Jane Smith ${local.suffix}"
       given_name          = "Jane"
       surname             = "Smith"
-      email               = var.jane_user_email
-      mail_nickname       = "jane.smith"
+      email               = "jane.smith.${local.suffix}@example.com"
+      mail_nickname       = "jane.smith.${local.suffix}"
       role                = "platform"
       azure_ad_user_type  = "Guest"
     },
     john = {
-      user_principal_name = var.john_user_email
-      display_name        = "John Doe"
+      user_principal_name = "john.doe.${local.suffix}@example.com"
+      display_name        = "John Doe ${local.suffix}"
       given_name          = "John"
       surname             = "Doe"
-      email               = var.john_user_email
-      mail_nickname       = "john.doe"
+      email               = "john.doe.${local.suffix}@example.com"
+      mail_nickname       = "john.doe.${local.suffix}"
       role                = "product"
       azure_ad_user_type  = "Guest"
     }

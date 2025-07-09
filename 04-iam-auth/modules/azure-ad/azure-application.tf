@@ -1,5 +1,5 @@
 resource "azuread_application" "sso" {
-  display_name     = var.prefix
+  display_name     = local.enterprise_app_name
   owners           = [data.azuread_client_config.current.object_id]
   logo_image       = var.logo_image_base64
   sign_in_audience = "AzureADMyOrg"
@@ -60,7 +60,7 @@ resource "time_rotating" "saml-certificate" {
 
 resource "azuread_service_principal_token_signing_certificate" "saml-certificate" {
   service_principal_id = azuread_service_principal.sso_sp.id
-  display_name         = "CN=${var.prefix} SSO Certificate"
+  display_name         = "CN=${local.enterprise_app_name} SSO Certificate"
   end_date             = time_rotating.saml-certificate.rotation_rfc3339
 
   provisioner "local-exec" {

@@ -1,22 +1,12 @@
-variable "john_user_email" {
-  type        = string
-  description = "User principal name for John Doe"
-}
-variable "jane_user_email" {
-  type        = string
-  description = "User principal name for Jane Doe"
-}
-
 variable "enable_teleport" {
   type        = bool
   description = "variable to enable the teleport integration"
   default     = true
 }
 
-variable "teleport_app_prefix" {
+variable "user_first_name" {
   type        = string
-  description = "Prefix for resources, used to avoid name collisions"
-  default     = "control-tower-teleport"
+  description = "The name of the user running the workshop, used to create unique resources"
 }
 
 variable "teleport_saml" {
