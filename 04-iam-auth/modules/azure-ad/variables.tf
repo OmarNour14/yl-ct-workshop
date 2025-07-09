@@ -4,10 +4,11 @@ variable "application_type" {
   default     = "aws"
 }
 
-variable "prefix" {
+variable "user_first_name" {
   type        = string
-  description = "Prefix for resources, used to avoid name collisions"
+  description = "The name of the user to be created in Azure AD"
 }
+
 
 variable "saml_entity_id" {
   type        = string

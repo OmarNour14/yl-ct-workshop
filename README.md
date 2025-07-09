@@ -270,12 +270,11 @@ cp terraform.tfvars.example terraform.tfvars
 Update the values with those provided to you. Here's a template:
 
 ```hcl
-john_user_email    = "user+john@email.com"
-jane_user_email    = "user+jane@email.com"
+user_first_name    = "omar"
 teleport_saml      = "https://REPLACE_WITH_TENANT.teleport.sh:443/v1/webapi/saml/acs/ad"
 ```
 
-> ℹ️ You can replace `john` and `jane` with any usernames you choose. We recommend using your YouLend email for at least one to test different access scenarios.
+> ℹ️ user first name is your first name to be able to identify your application in Entra ID
 
 ---
 
