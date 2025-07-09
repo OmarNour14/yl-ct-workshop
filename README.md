@@ -450,11 +450,438 @@ You should observe **failures and errors** triggered by the controls — we’ll
 
 ---
 ## Step 5 - Security Foundations
-In this section, we will be deploying AWS Security Services into our AWS Accounts and leveraging the AWS Control Tower and Organizations set up to have full monitoring of what is happening within those accounts.
-To proceed with this section you will need CLI access to the Security Account.
-I advise to create a dedicated IAM user with AWS CLI acccess with an Adminstrator mabnaged policy attached ( Follow along with Hosts to see the set up).
-Once created, paste the content in the .aws/credentials folder with a profile name called security
-Alternatively you can utilise the same method we did above with the production account and fetch short lived credentials with the Control Tower and paste them into the .aws/credentials with a security name.
-This module is quite large so the credentials might expire during the expelenations so if that happens, you will need to re-fetch the crednetials.
-once done.
+
+In this section, we will deploy key **AWS Security Services** into our AWS accounts, leveraging the AWS Control Tower and Organizations setup to enable centralized monitoring and compliance.
+
+---
+
+### 🔐 Accessing the Security Account
+
+To proceed, you’ll need **CLI access** to the **Security Account**.
+
+We recommend one of the following methods:
+
+* **Create a dedicated IAM user in Security Account** with an Administrator policy and configure its credentials using the AWS CLI.
+* Or, **generate short-lived credentials** from the SSO console (as done with the Production Account) and paste them into your `~/.aws/credentials` file under the profile name `security`.
+
+> ⚠️ Note: This module may take time to apply. If your credentials expire, simply re-fetch them.
+
+---
+
+### 📁 Navigate to the Security Foundations Module
+
+```sh
 cd ./07-security-foundations
+```
+
+Copy and rename the example tfvars file:
+
+```sh
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Update the values with the credentials and information provided to you:
+
+```hcl
+management_account_email = "user@email.me"
+
+logging_account_email    = "user+logging@email.me"
+logging_account_id       = "123456789"
+
+production_account_email = "user+production@email.me"
+production_account_id    = "123456789"
+
+slack_channel_id         = "C07EZ1ABC23"
+slack_team_id            = "T07EA123LEP"
+```
+
+> ℹ️ Use **email subaddressing** with the `+` symbol (e.g., `john.doe+logging@example.com`)
+> ✉️ AWS Account IDs can be fetched from the **SSO console**
+> 💬 Slack team and channel IDs can be found by inspecting Slack workspace settings using the URL provided.
+
+---
+
+### 🚀 Run the Terraform Module
+
+```sh
+terraform init
+terraform apply --auto-approve
+```
+
+This step will:
+
+1. **Delegate the AWS Security Account** as an Organization Admin for security services
+2. **Enable AWS Security Services** like Security Hub, Audit Manager, and Root Credential Monitoring on the Management Account
+3. **Deploy Security Features** into the Security Account to act as a centralized control plane
+
+---
+
+### 🔍 IAM Access Analyzer
+
+![IAM Access Analyzer](./assets/access-analyzer.png)
+
+**IAM Access Analyzer** identifies:
+
+* Unused IAM policies
+* Permissions granting access to external accounts
+
+To validate it works:
+Edit `./07-security-foundations/main.tf`, and in the `security_foundation_security` module, set:
+
+```hcl
+validate_iam_access_analyzer = true
+```
+
+This will create a cross-account IAM role that triggers IAM Access Analyzer and simulate findings for evaluation.
+
+We’ll review these findings together in the live session.
+
+---
+
+### Root Access Management
+
+When using AWS Organizations, each member account still retains its own root user. That’s why part of your security foundation should be to centrally secure and restrict root user access across all accounts.
+
+To validate it works:
+Edit `./07-security-foundations/main.tf`, and in the `security_foundation_management` module, set:
+
+```hcl
+validate_org_root_features = true
+```
+
+This will create an S3 bucket that can **only be deleted by the AWS Root user**. To delete the bucket, run the following commands:
+
+```sh
+aws sts assume-root    \
+  --region us-east-1 \
+  --target-principal <my member account id> \
+  --task-policy-arn arn:aws:iam::aws:policy/root-task/S3UnlockBucketPolicy
+```
+
+---
+
+#### Example Output
+
+```json
+{
+  "Credentials": {
+    "AccessKeyId": "AS....XIG",
+    "SecretAccessKey": "ao...QxG",
+    "SessionToken": "IQ...SS",
+    "Expiration": "2024-09-23T17:44:50+00:00"
+  }
+}
+```
+
+---
+
+#### Using the Output
+
+```sh
+export AWS_ACCESS_KEY_ID=ASIA356SJWJITG32xxx
+export AWS_SECRET_ACCESS_KEY=JFZzOAWWLocoq2of5Exxx
+export AWS_SESSION_TOKEN=IQoJb3JpZ2luX2VjEMb//////////wEaCXVxxxx
+```
+
+---
+
+#### Validate Root Identity
+
+```sh
+aws sts get-caller-identity
+```
+
+Expected output:
+
+```json
+{
+  "UserId": "012345678901",
+  "Account": "012345678901",
+  "Arn": "arn:aws:iam::012345678901:root"
+}
+```
+
+---
+
+#### Delete the S3 Bucket
+
+```sh
+aws s3api delete-bucket-policy --bucket <bucket_name>
+```
+---
+### Guard Duty
+
+![Guard Duty](./assets/guard-duty.png)
+
+**Amazon GuardDuty** is a powerful threat detection service that continuously monitors your AWS environment for suspicious activity, misconfigurations, and anomalous behavior. It's a key part of any security foundation.
+
+---
+
+### 🛠️ How It Works in This Setup
+
+* The `security_foundation_management` module enables GuardDuty for the AWS Organization and delegates the **AWS Security Account** as the GuardDuty administrator.
+* The `security_foundation_security` module auto-enables GuardDuty across **all AWS Accounts** in the Organization, including any new ones added later.
+
+> ⚠️ **Note**: It can take up to **24 hours** for GuardDuty configuration changes to propagate across all member accounts.
+
+---
+
+### ✅ Validating GuardDuty
+
+To validate that GuardDuty is working as expected:
+
+1. Log into the **AWS Production Account**.
+2. Navigate to **GuardDuty** in the AWS Console.
+3. Use the console option to **generate sample findings**.
+4. Then, log into the **AWS Security Account** (GuardDuty admin account).
+5. In the Security Account's GuardDuty console, you should now see the **sample findings** from the Production Account.
+
+This confirms that all member account activity is being aggregated and monitored centrally from the Security Account.
+
+---
+### AWS Audit Manager
+
+![Audit Manager](./assets/audit-manager.png)
+
+**AWS Audit Manager** helps you continuously audit your AWS usage by **automatically collecting evidence** to evaluate compliance with frameworks like **ISO/IEC 27001**, and others.
+
+---
+
+### 🛠️ How It Works in This Setup
+
+* The `security_foundation_management` module enables Audit Manager for the AWS Organization and delegates the **AWS Security Account** as the Audit Manager admin.
+* The `security_foundation_security` module:
+
+  * Creates **three custom controls** to check:
+
+    * CloudTrail is enabled
+    * CloudTrail is encrypted
+    * S3 public access is blocked at the account level
+  * Creates an **assessment** to aggregate and report findings across accounts
+
+> ⚠️ Once the assessment is created, **evidence collection starts automatically** for the defined controls. It may take up to **24 hours** for the evidence to appear in the Audit Manager console.
+
+---
+### AWS SecurityHub
+
+![AWS SecurityHub](./assets/security-hub.png)
+
+**AWS Security Hub** is a centralized security management service that aggregates and prioritizes findings across your AWS environment. It integrates with AWS-native services and third-party tools like Snyk, and supports automation through native AWS integrations.
+
+It seamlessly fits into CLI, API, and Infrastructure as Code workflows, making it ideal for automated and continuous monitoring.
+
+---
+
+### 🔧 What We’ll Configure
+
+#### 1. Enable Security Hub Organization-wide
+
+* The `security_foundation_management` module enables Security Hub for the entire AWS Organization.
+* It delegates the **AWS Security Account** as the Security Hub administrator.
+
+#### 2. Aggregate Findings Across Accounts
+
+* The `security_foundation_security` module auto-enrolls all member accounts into Security Hub.
+
+> ⚠️ Note: Accounts created **before** enabling Security Hub must be manually invited.
+
+To auto-invite existing accounts, enable the following variable in `./modules/security-foundation-security`:
+
+```hcl
+module "security_foundation_security" {
+  source = "./modules/security-foundation-security"
+  providers = {
+    aws = aws.security
+  }
+  enable_member_account_invites = true
+  security_hub_member_invite    = local.security_hub_member_invite
+}
+```
+
+And in `locals.tf`:
+
+```hcl
+security_hub_member_invite = {
+  logging = {
+    account_id = var.logging_account_id
+    email      = var.logging_account_email
+  }
+}
+```
+
+We’ve scoped aggregation to specific governed AWS regions: `eu-west-1`, `eu-west-2`, `eu-west-3`, using:
+
+To apply region aggregation, enable the following variable in `./modules/security-foundation-security`:
+
+```hcl
+module "security_foundation_security" {
+  source = "./modules/security-foundation-security"
+  providers = {
+    aws = aws.security
+  }
+  enable_sechub_aggregator            = true
+}
+```
+
+---
+
+#### 3. Apply Custom Insights
+
+Sometimes it’s best to narrow your view to the most critical risks. For example:
+
+* Critical or High severity findings
+* In production or customer-facing accounts
+
+To apply custom insights, enable the following variable in `./modules/security-foundation-security`:
+
+```hcl
+module "security_foundation_security" {
+  source = "./modules/security-foundation-security"
+  providers = {
+    aws = aws.security
+  }
+  enable_sechub_insights                   = true
+}
+```
+
+---
+
+#### 4. Apply Automation Rules
+
+SecurityHub Automation Rules allow you to:
+
+* Suppress irrelevant findings
+* Change severity levels
+* Add tags or notes
+* Route findings based on account, resource, or region
+
+In this setup, the module uses the `aws_securityhub_automation_rule` resource to:
+
+* Elevate any **HIGH** severity finding in the **Management** or **Security Account** to **CRITICAL**
+* Attach a note: *“Please address this ASAP, this is a high-risk account.”*
+
+To apply automation rules, enable the following variable in `./modules/security-foundation-security`:
+
+```hcl
+module "security_foundation_security" {
+  source = "./modules/security-foundation-security"
+  providers = {
+    aws = aws.security
+  }
+  enable_sechub_automation_rule            = true
+}
+```
+
+---
+### 5. Applying Custom Actions for Automated Remediations
+
+Security Hub isn’t just for visibility and triage — it also enables **real-time, automated remediation** of security and compliance issues.
+
+Thanks to its integrations with GuardDuty, Audit Manager, IAM Access Analyzer, and more, Security Hub can detect threats or misconfigurations and trigger **custom actions** via:
+
+* AWS Lambda
+* Systems Manager Automation Documents (SSM Docs)
+* EventBridge and more
+
+---
+
+#### 🔄 Example Scenario
+
+**Scenario**: John pushes a container image to Amazon ECR that includes known vulnerabilities and forgets to delete it.
+
+**Remediation Flow:**
+
+![SecurityHub Remediation](./assets/sechub-ecr-remediation.png)
+
+1. ECR’s built-in image scanning detects the vulnerability
+2. EventBridge captures the scan event and routes it to Lambda
+3. Lambda sends the event to Security Hub
+4. A **custom action** in Security Hub triggers another Lambda that blocks the vulnerable image from being used
+
+---
+
+#### ⚙️ Enabling Remediation in Terraform
+
+To apply the remediation workflow, set the following variable in `./modules/security-foundation-security`:
+
+```hcl
+module "security_foundation_security" {
+  source = "./modules/security-foundation-security"
+  providers = {
+    aws = aws.security
+  }
+  enable_sechub_ecr_remediation = true
+}
+```
+
+---
+
+### 🧰 Support & Resources
+
+📚 AWS provides a [CloudFormation repository on GitHub](https://github.com/aws-samples/aws-securityhub-automated-response-and-remediation) with many integration patterns. This ECR example was adapted from there.
+
+To test this in a repeatable way, use the helper script:
+
+```sh
+./07-security-foundations/validate-sechub-custom-actions/ecr_test_trigger.sh
+```
+
+This script simulates the full lifecycle: push → scan → detect → trigger remediation.
+
+Before running the script, ensure:
+
+* Docker is installed and running
+* Your AWS CLI is configured with access to the **AWS Security Account**
+
+---
+### 6. Notification Alerts with Custom Actions
+
+Manually checking the Security Hub dashboard isn’t ideal — you want to be notified **only when it matters**.
+
+In this step, we’ll integrate **AWS Security Hub with Slack** to receive real-time alerts when findings are triggered.
+
+---
+
+#### 🧭 Set Up Slack Integration
+
+Using the **Slack workspace provided**, Follow the setup guide below until the CloudFormation step:
+👉 [AWS Security Hub + Chatbot Integration Guide](https://aws.amazon.com/blogs/security/enabling-aws-security-hub-integration-with-aws-chatbot/)
+
+Ensure your `terraform.tfvars` includes the correct values:
+
+```hcl
+slack_channel_id = "C07EZ1ABC23"
+slack_team_id    = "T07EA123LEP"
+```
+
+---
+
+#### ⚙️ Enable Slack Integration via Terraform
+
+To activate the integration, modify the module declaration in `./modules/security-foundation-security`:
+
+```hcl
+module "security_foundation_security" {
+  source = "./modules/security-foundation-security"
+  providers = {
+    aws = aws.security
+  }
+  enable_sechub_slack_integration = true
+  slack_channel_id                = var.slack_channel_id
+  slack_team_id                   = var.slack_team_id
+}
+```
+
+---
+
+#### ✅ Triggering an Alert
+
+You can use the existing helper script to simulate a vulnerability scenario:
+
+```sh
+./07-security-foundations/validate-sechub-custom-actions/ecr_test_trigger.sh
+```
+
+Optionally, make a change (e.g., deploy a new ECR repo or application version) before rerunning the script.
+
+You should then receive a **Slack alert** in the configured channel — confirming successful integration and alert routing.
