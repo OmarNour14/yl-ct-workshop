@@ -897,7 +897,7 @@ You should then receive a **Slack alert** in the configured channel — confirmi
 
 ---
 
-### 🔄 How AFT Works
+#### 🔄 How AFT Works
 
 The provisioning flow moves from **left to right** as follows:
 
@@ -911,7 +911,7 @@ The provisioning flow moves from **left to right** as follows:
 
 ---
 
-### 📁 Navigate to the AFT Setup Folder
+#### 📁 Navigate to the AFT Setup Folder
 
 ```sh
 cd ./08-aft-setup
@@ -937,7 +937,7 @@ github_organization      = "MY_GITHUB_ORG_NAME"
 
 ---
 
-### 📂 Review the AFT Repositories Structure
+#### 📂 Review the AFT Repositories Structure
 
 ```txt
 ./08-aft-setup/aft-repos
@@ -1063,3 +1063,209 @@ In `locals.tf`, make sure to define the `customizations_name` — this tag is cr
 4. Then check your **Management Account** — the **Development Account** should appear as provisioning starts
 
 This confirms your AFT setup is working end-to-end for both **account creation** and **importing existing accounts**.
+
+---
+### 3. Customizing AFT Accounts
+
+Now that our AWS accounts are fully managed by AFT, we can start applying **customizations per account** via the AFT pipeline.
+
+#### 📁 Navigate to Customizations Folder
+
+```sh
+cd ./010-aft-account-customizations
+```
+
+Inside, you’ll see two folders:
+
+* `DEVELOPMENT`
+* `PRODUCTION`
+
+> 📝 The folder names **must match** the `customizations_name` value defined in your earlier AFT account request (case sensitive).
+
+Copy these folders into your **`aft-account-customizations`** GitHub repository and **merge into `main`**.
+
+#### 🎯 What This Deploys
+
+For **Development** and **Production** accounts:
+
+1. An **AWS Budget**
+
+   * \$50 in Development
+   * \$100 in Production
+2. A Terraform module: `yl-finance-infra`
+
+   * This simulates deployment infrastructure for a React-based company application
+
+#### 🚀 Run Customizations via Step Function
+
+By default, AFT customizations only run **at account creation time**.
+To apply them post-deployment, we trigger them manually using AWS Step Functions:
+
+1. Navigate to **Step Functions** in the **Platform Account**
+2. Select the state machine named: `aft-invoke-customisations`
+3. Click **Start Execution**, and use this JSON input:
+
+```json
+{
+  "include": [
+    {
+      "type": "ous",
+      "target_value": [ "Product"]
+    }
+  ]
+}
+```
+
+4. Monitor the execution and associated **CodePipeline runs** in the Platform Account
+5. Check both **Development** and **Production accounts** for the results
+
+#### 🌐 OPTIONAL - React App Deployment
+
+To fully deploy the simulated React app, follow the instructions in this guide:
+👉 [OmarFinance React App - GitHub](https://github.com/onoureldin14/OmarFinance-React-App/blob/main/README.md)
+
+---
+
+### 4. Global Customizations of AFT Accounts
+
+In addition to account-specific customizations, AFT also supports **global customizations** that apply to **all AWS accounts** under its management.
+
+#### 📁 Setup
+
+1. Copy the Terraform folder from:
+
+```sh
+./011-aft-global-customizations/terraform
+```
+
+2. This Terraform module defines an **S3 global block policy** that disables public access across all buckets in every account.
+
+3. Push the contents to your GitHub repo named:
+
+```sh
+aft-global-customizations
+```
+
+4. Commit and merge to the `main` branch.
+
+
+#### 🚀 Trigger the Global Customization
+
+To apply the change across **all accounts**, invoke the AFT Step Function:
+
+1. Go to **AWS Step Functions** in the **Platform Account**
+2. Select `aft-invoke-customisations`
+3. Start a new execution with the following input:
+
+```json
+{
+  "include": [
+    {
+      "type": "all"
+    }
+  ]
+}
+```
+
+4. Wait for the execution to complete successfully
+5. Monitor **CodePipeline** executions for customization runs across all accounts
+
+#### ✅ Validation
+
+To confirm that the global S3 block policy was applied:
+
+* Navigate to any AFT-managed account (e.g., **Logging Account**)
+* Open the **S3 Console**
+* You should see that **block public access** is enforced organization-wide
+
+This ensures consistent baseline security policies across your entire AWS organization.
+
+---
+### 5. Account Provisioning Customizations
+
+Although we haven’t explored this pipeline much, the **Account Provisioning Customizations** pipeline plays a crucial role. It:
+
+* Executes both **account-specific** and **global** customizations
+* Applies **non-Terraform-based configurations**, such as API calls or Lambda logic
+
+In this step, we’ll use it to assign **AWS Alternate Contacts** to individual accounts **during the AFT Account Request process**.
+
+
+#### 🔐 Secrets Manager Prerequisites
+
+Update the existing `aft-account-secrets` in **Secrets Manager** with:
+
+* `aws_ct_mgt_account_id`: fetch from the **SSO console**
+* `aws_ct_mgt_org_id`: fetch from **AWS Organizations settings** in the **Management Account**
+
+#### 📁 Provisioning Customizations
+
+1. Navigate to:
+
+```sh
+cd ./012-aft-account-provisioning-customizations
+```
+
+2. Copy the contents of the Terraform folder into your GitHub repo named:
+
+```sh
+aft-account-provisioning-customizations
+```
+
+3. Merge the code into `main`
+
+This module will:
+
+* Deploy AWS Lambda functions
+* Use them to **update Alternate Contacts** across accounts (e.g., Operations, Billing)
+* Validate changes with IAM permissions through Terraform
+
+
+#### 🧾 Add Alternate Contacts to Account Requests
+
+1. Still in `./012-aft-account-provisioning-customizations`, navigate to:
+
+```sh
+cd ./aft-account-requests-alternate-contacts
+```
+
+2. Inside, copy the Terraform folder
+3. Replace the corresponding folder in your GitHub repo:
+
+```sh
+aft-account-request
+```
+
+4. Merge the changes to `main`
+
+---
+
+### 🔍 Validation
+
+Check `locals.tf` in the request folder — you'll see alternate contact details configured for **Development** and **Production** accounts in the **Product OU**.
+
+* For example, the **Head of Product** is defined as the **Operations contact**
+
+These contacts will be automatically applied via Lambda during the provisioning pipeline execution.
+
+#### ✅ Validation
+
+To validate the alternate contact setup:
+
+1. Run the Step Function `aft-invoke-customisations` using the **Product OU** targeting template:
+
+```json
+{
+  "include": [
+    {
+      "type": "ous",
+      "target_value": [ "Product" ]
+    }
+  ]
+}
+```
+
+2. Once complete, go to the **AWS Billing Dashboard** in both the **Development** and **Production** accounts
+3. Confirm the **Alternate Contacts** have been updated according to the configuration
+
+---
