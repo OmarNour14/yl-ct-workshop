@@ -1123,3 +1123,61 @@ To apply them post-deployment, we trigger them manually using AWS Step Functions
 
 To fully deploy the simulated React app, follow the instructions in this guide:
 👉 [OmarFinance React App - GitHub](https://github.com/onoureldin14/OmarFinance-React-App/blob/main/README.md)
+
+---
+
+### 4. Global Customizations of AFT Accounts
+
+In addition to account-specific customizations, AFT also supports **global customizations** that apply to **all AWS accounts** under its management.
+
+#### 📁 Setup
+
+1. Copy the Terraform folder from:
+
+```sh
+./011-aft-global-customizations/terraform
+```
+
+2. This Terraform module defines an **S3 global block policy** that disables public access across all buckets in every account.
+
+3. Push the contents to your GitHub repo named:
+
+```sh
+aft-global-customizations
+```
+
+4. Commit and merge to the `main` branch.
+
+
+#### 🚀 Trigger the Global Customization
+
+To apply the change across **all accounts**, invoke the AFT Step Function:
+
+1. Go to **AWS Step Functions** in the **Platform Account**
+2. Select `aft-invoke-customisations`
+3. Start a new execution with the following input:
+
+```json
+{
+  "include": [
+    {
+      "type": "all"
+    }
+  ]
+}
+```
+
+4. Wait for the execution to complete successfully
+5. Monitor **CodePipeline** executions for customization runs across all accounts
+
+#### ✅ Validation
+
+To confirm that the global S3 block policy was applied:
+
+* Navigate to any AFT-managed account (e.g., **Logging Account**)
+* Open the **S3 Console**
+* You should see that **block public access** is enforced organization-wide
+
+This ensures consistent baseline security policies across your entire AWS organization.
+
+---
