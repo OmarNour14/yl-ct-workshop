@@ -885,3 +885,85 @@ You can use the existing helper script to simulate a vulnerability scenario:
 Optionally, make a change (e.g., deploy a new ECR repo or application version) before rerunning the script.
 
 You should then receive a **Slack alert** in the configured channel — confirming successful integration and alert routing.
+
+---
+## Step 6 - Account Factory Terraform
+
+### Setting up the AFT
+
+**Account Factory Terraform (AFT)** is an AWS framework that enables automated, consistent **account provisioning and customization** using **Terraform**, our preferred infrastructure-as-code tool.
+
+![AFT Architecture](./assets/aft-arch.png)
+
+---
+
+### 🔄 How AFT Works
+
+The provisioning flow moves from **left to right** as follows:
+
+1. An account is requested via the **AFT Account Request** repository
+2. **Provisioning-time customizations** are applied in the **AFT Management Account**
+3. **Global customizations** are applied inside each new account via an auto-created pipeline
+4. **Account-specific customizations**, if defined, are executed inside the relevant accounts
+
+> AWS recommends managing AFT from a dedicated AWS account inside a **Platform** or **Infrastructure OU**.
+> We’ll use the **Platform Account** created earlier in [05-baseline-ou](./05-baseline-ou/)
+
+---
+
+### 📁 Navigate to the AFT Setup Folder
+
+```sh
+cd ./08-aft-setup
+```
+
+Copy the example file:
+
+```sh
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Update the values:
+
+```hcl
+security_account_id      = "123456789"
+logging_account_id       = "123456789"
+platform_account_id      = "123456789012"
+github_organization      = "MY_GITHUB_ORG_NAME"
+```
+
+> Use your **personal or work GitHub account** — just make sure the repos match the names below.
+> Replace all `account_id` values using the SSO console.
+
+---
+
+### 📂 Review the AFT Repositories Structure
+
+```txt
+./08-aft-setup/aft-repos
+├── aft-account-customizations/
+├── aft-account-provisioning-customizations/
+├── aft-account-request/
+└── aft-global-customizations/
+```
+
+#### Repo Purpose:
+
+* `aft-account-request`: defines account creation requests
+* `aft-global-customizations`: applies to **all** accounts
+* `aft-account-customizations`: account-specific customization templates
+* `aft-account-provisioning-customizations`: applies only at **provisioning time**
+
+> ⚠️ **AFT does not support monorepo setups.**
+
+You must push each directory to a **separate GitHub repo** under your account. Use the **exact same repo name** as the folder.
+
+---
+
+### 🚀 Deploying AFT
+
+This module deploys the full AFT infrastructure into the **AWS Management Account**, as shown in the architecture diagram. It references the GitHub repos you just pushed.
+
+Once the deployment is successful, a series of **Service Catalog permissions** will automatically configure relationships between the **Platform** and **Management Accounts** to allow safe, governed account vending.
+
+Stay tuned in the workshop to observe and validate each step live.
