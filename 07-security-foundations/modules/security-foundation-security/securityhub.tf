@@ -15,11 +15,13 @@ resource "aws_securityhub_member" "members" {
 }
 
 resource "aws_securityhub_finding_aggregator" "aws_securityhub_finding_aggregator" {
+  count             = var.enable_sechub_aggregator ? 1 : 0
   linking_mode      = "SPECIFIED_REGIONS"
   specified_regions = var.securityhub_aggregator_specified_regions
 }
 
 resource "aws_securityhub_insight" "cirtical_high_risk_proudction_account" {
+  count = var.enable_sechub_insights ? 1 : 0
   filters {
     aws_account_id {
       comparison = "EQUALS"
@@ -41,6 +43,7 @@ resource "aws_securityhub_insight" "cirtical_high_risk_proudction_account" {
 }
 
 resource "aws_securityhub_automation_rule" "elevate_security_and_management_findings" {
+  count       = var.enable_sechub_automation_rule ? 1 : 0
   description = "Elevate finding severity to CRITICAL when Security or Management findings are detected"
   rule_name   = "Elevate severity of findings that relate to Management or Security accounts"
   rule_order  = 1
@@ -83,6 +86,7 @@ resource "aws_securityhub_automation_rule" "elevate_security_and_management_find
 }
 
 resource "aws_cloudformation_stack" "ecr_continious_compliance" {
+  count         = var.enable_sechub_ecr_remediation ? 1 : 0
   name          = "aws-ecr-continuouscompliance"
   template_body = file("${path.module}/cf-templates/aws-ecr-continuouscompliance-v1.yaml")
   capabilities  = ["CAPABILITY_NAMED_IAM"]

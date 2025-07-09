@@ -28,7 +28,33 @@ variable "use_eks_runtime_monitoring" {
 variable "enable_member_account_invites" {
   description = "Whether to enable inviting member accounts to Security Hub"
   type        = bool
-  default     = true
+  default     = false
+}
+
+variable "enable_sechub_insights" {
+  description = "Flag to enable Security Hub insights"
+  type        = bool
+  default     = false
+}
+
+variable "enable_sechub_automation_rule" {
+  description = "Flag to enable Security Hub automation rules"
+  type        = bool
+  default     = false
+}
+
+variable "enable_sechub_aggregator" {
+  description = "Flag to enable Security Hub finding aggregator"
+  type        = bool
+  default     = false
+
+}
+
+variable "enable_sechub_ecr_remediation" {
+  description = "Flag to enable Security Hub ECR remediation"
+  type        = bool
+  default     = false
+
 }
 
 variable "security_hub_member_invite" {
