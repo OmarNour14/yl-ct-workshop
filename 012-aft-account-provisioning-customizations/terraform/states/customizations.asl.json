@@ -1,0 +1,18 @@
+{
+    "StartAt": "Pass",
+    "States": {
+        "Pass": {
+            "Type": "Pass",
+            "Next": "aft-alternate-contacts-step"
+        },
+        "aft-alternate-contacts-step": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::states:startExecution.sync:2",
+            "Parameters": {
+                "StateMachineArn": "${data_aft_alternate_contacts_state}",
+                "Input.$": "$"
+            },
+            "End": true
+        }
+    }
+}

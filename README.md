@@ -1181,3 +1181,91 @@ To confirm that the global S3 block policy was applied:
 This ensures consistent baseline security policies across your entire AWS organization.
 
 ---
+### 5. Account Provisioning Customizations
+
+Although we haven’t explored this pipeline much, the **Account Provisioning Customizations** pipeline plays a crucial role. It:
+
+* Executes both **account-specific** and **global** customizations
+* Applies **non-Terraform-based configurations**, such as API calls or Lambda logic
+
+In this step, we’ll use it to assign **AWS Alternate Contacts** to individual accounts **during the AFT Account Request process**.
+
+
+#### 🔐 Secrets Manager Prerequisites
+
+Update the existing `aft-account-secrets` in **Secrets Manager** with:
+
+* `aws_ct_mgt_account_id`: fetch from the **SSO console**
+* `aws_ct_mgt_org_id`: fetch from **AWS Organizations settings** in the **Management Account**
+
+#### 📁 Provisioning Customizations
+
+1. Navigate to:
+
+```sh
+cd ./012-aft-account-provisioning-customizations
+```
+
+2. Copy the contents of the Terraform folder into your GitHub repo named:
+
+```sh
+aft-account-provisioning-customizations
+```
+
+3. Merge the code into `main`
+
+This module will:
+
+* Deploy AWS Lambda functions
+* Use them to **update Alternate Contacts** across accounts (e.g., Operations, Billing)
+* Validate changes with IAM permissions through Terraform
+
+
+#### 🧾 Add Alternate Contacts to Account Requests
+
+1. Still in `./012-aft-account-provisioning-customizations`, navigate to:
+
+```sh
+cd ./aft-account-requests-alternate-contacts
+```
+
+2. Inside, copy the Terraform folder
+3. Replace the corresponding folder in your GitHub repo:
+
+```sh
+aft-account-request
+```
+
+4. Merge the changes to `main`
+
+---
+
+### 🔍 Validation
+
+Check `locals.tf` in the request folder — you'll see alternate contact details configured for **Development** and **Production** accounts in the **Product OU**.
+
+* For example, the **Head of Product** is defined as the **Operations contact**
+
+These contacts will be automatically applied via Lambda during the provisioning pipeline execution.
+
+#### ✅ Validation
+
+To validate the alternate contact setup:
+
+1. Run the Step Function `aft-invoke-customisations` using the **Product OU** targeting template:
+
+```json
+{
+  "include": [
+    {
+      "type": "ous",
+      "target_value": [ "Product" ]
+    }
+  ]
+}
+```
+
+2. Once complete, go to the **AWS Billing Dashboard** in both the **Development** and **Production** accounts
+3. Confirm the **Alternate Contacts** have been updated according to the configuration
+
+---
