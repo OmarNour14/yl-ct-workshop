@@ -889,7 +889,7 @@ You should then receive a **Slack alert** in the configured channel — confirmi
 ---
 ## Step 6 - Account Factory Terraform
 
-### Setting up the AFT
+### 1. Setting up the AFT
 
 **Account Factory Terraform (AFT)** is an AWS framework that enables automated, consistent **account provisioning and customization** using **Terraform**, our preferred infrastructure-as-code tool.
 
@@ -967,3 +967,99 @@ This module deploys the full AFT infrastructure into the **AWS Management Accoun
 Once the deployment is successful, a series of **Service Catalog permissions** will automatically configure relationships between the **Platform** and **Management Accounts** to allow safe, governed account vending.
 
 Stay tuned in the workshop to observe and validate each step live.
+
+---
+
+### Post Deployment
+
+After the AFT module and Terraform code deploy successfully:
+
+1. **Navigate to the AWS Platform Account**
+2. Open the **CodePipeline** service
+3. You will likely see two `ct-aft-*` pipelines in a **failed** state:
+
+![Code pipeline errors](./assets/aft-pipeline-error.png)
+
+
+> ⚠️ This is expected — it typically indicates an **unvalidated connection** between GitHub and CodePipeline.
+
+
+#### ✅ Fixing the GitHub Connection
+
+1. In the AWS Console, go to **Developer Tools → Connections**
+2. Locate the GitHub connection configured for AFT
+3. Click **Validate** to authorize it
+
+![Github connection](./assets/aft-github-connection.png)
+
+Once validated, revisit the failed pipelines and **retry the execution**. They should now proceed successfully with your latest GitHub source commits.
+
+---
+
+### 2. Creating & Importing AWS Accounts into AFT
+
+Instead of provisioning accounts directly using Terraform, we now shift to using the **Account Factory Terraform (AFT)** pipeline for scalable and repeatable account provisioning.
+
+We'll use the repository: [09-aft-account-request](./09-aft-account-request/)
+
+---
+
+#### 🧾 What We'll Do
+
+We will:
+
+* **Provision a new Development Account** in the existing **Product OU**
+* **Import existing accounts** into AFT management:
+
+  * Security Account (Security OU)
+  * Logging Account (Security OU)
+  * Production Account (Product OU)
+
+
+#### 🔐 Create Secrets in Secrets Manager
+
+Go to the **Platform Account**, open **Secrets Manager**, and create a new secret named:
+
+```
+aft-account-secrets
+```
+
+Use **Key/Value** pairs for the following values:
+
+* `security_account_email`: your existing security email (with `+` subaddressing)
+* `production_account_email`: your production email
+* `logging_account_email`: your logging email
+* `development_account_email`: a **new** subaddressed email for the Dev account
+* `sso_user_email`: your main workshop email
+
+![aft-account-secrets](./assets/aft-account-secrets.png)
+
+> This avoids hardcoding sensitive data and follows AWS security best practices.
+
+---
+
+### 🚀 Deploying the Request
+
+1. Copy the folder contents from [09-aft-account-request](./09-aft-account-request/)
+2. Paste them into your GitHub repo named `aft-account-request`
+3. Commit and merge into the `main` branch
+
+AFT will now:
+
+* Check if the account already exists
+
+  * If yes, it **imports** the account into AFT management if the email and ID match
+  * If not, it **creates** the account from scratch
+
+In `locals.tf`, make sure to define the `customizations_name` — this tag is crucial for applying account-level customizations later.
+
+---
+
+### 🧪 Run the Pipeline
+
+1. Go to **AWS Platform Account → CodePipeline**
+2. Run the `aft-account-request` pipeline manually
+3. Wait for it to complete (\~a few minutes)
+4. Then check your **Management Account** — the **Development Account** should appear as provisioning starts
+
+This confirms your AFT setup is working end-to-end for both **account creation** and **importing existing accounts**.
