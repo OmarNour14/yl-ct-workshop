@@ -1268,3 +1268,120 @@ To validate the alternate contact setup:
 3. Confirm the **Alternate Contacts** have been updated according to the configuration
 
 ---
+
+## Step 7 - Centralised Logging with Datadog
+
+Centralizing logs is critical for observability and threat detection across your AWS accounts. In this step, we’ll set up log forwarding from the **AWS Logging Account** to **Datadog**.
+
+
+### 📁 Navigate to the Logging Module
+
+```sh
+cd ./013-datadog-logging
+```
+
+Copy the example variable file:
+
+```sh
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Update the following value using your Datadog API key (available from the provided Datadog Console link):
+
+```hcl
+datadog_api_key = "XXXXXXXXXXXXXXXXXXXXXX"
+```
+
+
+### 🔐 AWS Access Requirements
+
+Ensure that you have **CLI access to the AWS Logging Account**. You can achieve this via:
+
+* AWS SSO temporary credentials
+* Or by creating an **IAM user** with CLI access
+
+
+### 🚀 Deploy the Logging Setup
+
+Run the following Terraform commands:
+
+```sh
+terraform init
+terraform apply --auto-approve
+```
+
+This will:
+
+* Enable centralized log forwarding from your Logging Account
+* Stream logs directly to Datadog for monitoring and alerting
+
+After deployment, verify the Datadog dashboard for new incoming logs from the Logging Account.
+
+[Architecture](./assets/datadog-architecture.png)
+
+
+---
+## Step 8 - Feedback Form
+
+Thank you for participating in the workshop! 🙌
+
+We’d really appreciate it if you could take a moment to complete the feedback form using the link below.
+
+### 📋 Why It Matters
+
+* Helps us **improve future workshops** and tailor them better for YouLend teams
+* Captures your **questions and follow-ups** to be addressed post-workshop
+* Acts as a reference point when discussing future needs with **external vendors** for Control Tower solutions
+
+> Your input is highly valuable — even just a few lines can go a long way.
+
+🔗 **Link to form**: \[[Form](https://forms.office.com/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAMAAZcWwkNURUJORkU1NDhVR0MwT0RFWTZCQlhGR0g2US4u)]
+
+
+---
+## Step 9 - Final Architecture
+
+As we wrap up the workshop, let’s reflect on what a **well-architected Control Tower setup** should look like when leveraging AWS Organizations effectively.
+
+This final architecture represents an evolution of everything we've covered — from initial provisioning and OU baselining to centralized security and automation pipelines via AFT.
+
+### 📘 Reference Architecture
+
+To follow along, please visit the Medium article linked below and scroll to the section titled:
+
+**➡️ A Well-Architected Control Tower: Account Breakdown**
+
+> 🔗 **Medium Article Link**: *\[Insert your Medium URL here]*
+
+---
+## Step 9 - Considerations
+
+When working with AWS Control Tower, it's important to take a step back and ask the right questions — this section is meant to help plant those thoughts early so you can address them head-on as your implementation matures.
+
+### 🔍 Key Considerations
+
+To follow along, please visit the Medium article linked below and scroll to the section titled:
+
+**➡️ Key Considerations**
+
+> 🔗 **Medium Article Link**: *\[Insert your Medium URL here]*
+
+---
+
+## Step 10 - Material
+
+Thank you for joining the YouLend Control Tower Workshop! 🎉
+
+If you'd like to revisit or dive deeper into what we covered, we’ve prepared a **4-part Medium article series** that walks through everything from foundational setup to advanced customizations — and even more than we could fit into the live sessions.
+
+We appreciate your engagement and thank everyone involved in organizing and contributing to this learning experience.
+
+### 📚 Workshop Reading Material
+
+* **Medium Part 1** – \[Insert Link]
+* **Medium Part 2** – \[Insert Link]
+* **Medium Part 3** – \[Insert Link]
+* **Medium Part 4** – \[Insert Link]
+* **AWS Control Tower Workshop GitHub** – \[Insert Repo Link]
+
+> Feel free to share the series internally or use it as a reference for upcoming architecture discussions.
