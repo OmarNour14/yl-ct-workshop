@@ -71,12 +71,13 @@ You should have received credentials structured as follows:
 * Identity & Access Management (Teleport & Azure AD)
 * OU Baselining
 * Applying Control Tower Controls
+* Security Foundations Part 1
 
 ---
 
 ### **Day 2: Security, Customisation & Wrap-up**
 
-* Security Foundations
+* Security Foundations Part 2
 * Account Customisations (Account Factory with Terraform)
 * Centralised Logging (Datadog)
 * Feedback Session
@@ -1351,7 +1352,7 @@ To follow along, please visit the Medium article linked below and scroll to the 
 
 **➡️ A Well-Architected Control Tower: Account Breakdown**
 
-> 🔗 **Medium Article Link**: *\[Insert your Medium URL here]*
+> 🔗 **[Medium Part 4](https://medium.com/@omarnour_5895/aws-control-tower-deep-dive-part-4-control-tower-enterprise-edition-with-teleport-datadog-ced42e00fdb3)**
 
 ---
 ## Step 9 - Considerations
@@ -1364,7 +1365,7 @@ To follow along, please visit the Medium article linked below and scroll to the 
 
 **➡️ Key Considerations**
 
-> 🔗 **Medium Article Link**: *\[Insert your Medium URL here]*
+> 🔗 **[Medium Part 4](https://medium.com/@omarnour_5895/aws-control-tower-deep-dive-part-4-control-tower-enterprise-edition-with-teleport-datadog-ced42e00fdb3)**
 
 ---
 
@@ -1378,10 +1379,10 @@ We appreciate your engagement and thank everyone involved in organizing and cont
 
 ### 📚 Workshop Reading Material
 
-* **Medium Part 1** – \[Insert Link]
-* **Medium Part 2** – \[Insert Link]
-* **Medium Part 3** – \[Insert Link]
-* **Medium Part 4** – \[Insert Link]
-* **AWS Control Tower Workshop GitHub** – \[Insert Repo Link]
+* **[Medium Part 1](https://medium.com/@omarnour_5895/aws-control-tower-deep-dive-part-1-a-theory-first-guide-from-the-official-workshop-06a42f5ecdc1)**
+* **[Medium Part 2](https://medium.com/@omarnour_5895/aws-control-tower-deep-dive-part-2-my-journey-turning-blueprints-into-a-real-project-7069b6f629c3)**
+* **[Medium Part 3](https://medium.com/@omarnour_5895/aws-control-tower-deep-dive-part-3-scaling-securely-with-foundations-baselines-cfc89157042c)**
+* **[Medium Part 4](https://medium.com/@omarnour_5895/aws-control-tower-deep-dive-part-4-control-tower-enterprise-edition-with-teleport-datadog-ced42e00fdb3)**
+* **[AWS Control Tower Workshop](https://workshops.aws/categories/Management%20&%20Governance?tag=AWS%20Control%20Tower)**
 
 > Feel free to share the series internally or use it as a reference for upcoming architecture discussions.
