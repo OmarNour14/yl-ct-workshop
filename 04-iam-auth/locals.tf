@@ -3,7 +3,7 @@ locals {
   identity_users = {
     admin = {
       user_principal_name = var.user_email
-      display_name        = "${var.user_first_name}" + " " + "${var.user_last_name}"
+      display_name        = "${var.user_first_name} ${var.user_last_name}"
       given_name          = var.user_first_name
       surname             = var.user_last_name
       email               = var.user_email
