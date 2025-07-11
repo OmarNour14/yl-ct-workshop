@@ -388,7 +388,7 @@ Update the values with those provided to you. Here's a template:
 platform_account_email = "user+platform@email.me"
 ```
 
-> ℹ️ Keep the `+` symbol in the email (e.g., `john.doe+platform@example.com`) to utilize **email subaddressing**.
+> ℹ️ Keep the `+` symbol in the email (e.g., `john.doe+platform@youlend.com`) to utilize **email subaddressing**.
 
 ---
 
@@ -518,7 +518,7 @@ slack_channel_id         = "C07EZ1ABC23"
 slack_team_id            = "T07EA123LEP"
 ```
 
-> ℹ️ Use **email subaddressing** with the `+` symbol (e.g., `john.doe+logging@example.com`)
+> ℹ️ Use **email subaddressing** with the `+` symbol (e.g., `john.doe+logging@youlend.com`)
 > ✉️ AWS Account IDs can be fetched from the **SSO console**
 > 💬 Slack team and channel IDs can be found by inspecting Slack workspace settings using the URL provided.
 
