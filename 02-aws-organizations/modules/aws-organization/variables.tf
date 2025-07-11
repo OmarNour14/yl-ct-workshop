@@ -8,11 +8,11 @@ variable "organization_accounts" {
   default = {
     security = {
       name  = "Security Account"
-      email = "security@example.com"
+      email = "security@youlend.com"
     }
     logging = {
       name  = "Logging Account"
-      email = "logging@example.com"
+      email = "logging@youlend.com"
     }
   }
 }

@@ -1,2 +1,4 @@
-user_first_name    = "omar"
+user_first_name    = "user"
+user_last_name     = "user"
+user_email         = "userylcontroltower@proton.me"
 teleport_saml      = "https://REPLACE_WITH_TENANT.teleport.sh:443/v1/webapi/saml/acs/ad"
