@@ -18,15 +18,15 @@ validate-vars:
 		echo "❌ terraform.tfvars not found in root directory."; \
 		exit 1; \
 	fi
-	@if ! grep -qE '^security_account_email[[:space:]]*=[[:space:]]*".+@.+\..+"' $(TFVARS); then \
-		echo "❌ Missing or invalid 'security_account_email' in terraform.tfvars."; \
+	@if ! grep -qE '^security_account_email[[:space:]]*=[[:space:]]*".+\+security@proton\.me"' $(TFVARS); then \
+		echo "❌ 'security_account_email' must end with +security@proton.me."; \
 		exit 1; \
 	fi
-	@if ! grep -qE '^logging_account_email[[:space:]]*=[[:space:]]*".+@.+\..+"' $(TFVARS); then \
-		echo "❌ Missing or invalid 'logging_account_email' in terraform.tfvars."; \
+	@if ! grep -qE '^logging_account_email[[:space:]]*=[[:space:]]*".+\+logging@proton\.me"' $(TFVARS); then \
+		echo "❌ 'logging_account_email' must end with +logging@proton.me."; \
 		exit 1; \
 	fi
-	@echo "✅ terraform.tfvars validated."
+	@echo "✅ terraform.tfvars validated: required emails are present and correctly formatted."
 
 copy-vars:
 	cp $(TFVARS) $(ORG_DIR)/
