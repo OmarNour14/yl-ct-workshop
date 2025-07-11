@@ -4,7 +4,7 @@
 
 Before starting the workshop, please ensure the following tools are installed:
 
-* **Terraform** (installed via `tenv`): [YouLend Wiki Guide](https://youlend.atlassian.net/wiki/spaces/DevOps/pages/1375698985/Terraform+Terragrunt+Versioning+via+tenv+-+Transition+Plan)
+* **Terraform** (installed via `tenv`): [YouLend Wiki Guide](https://youlend.atlassian.net/wiki/spaces/DevOps/pages/1367179268/Terraform+Terragrunt+Versioning+via+tenv)
 * **Azure CLI**: [Installation Guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
 * **Teleport CLI tools** (`tctl` and `tsh`): If you already use the `th` helper YouLend function, this is already installed. [Teleport Azure AD Integration Guide](https://goteleport.com/docs/admin-guides/access-controls/sso/azuread/#prerequisites)
 
@@ -55,6 +55,7 @@ You should have received credentials structured as follows:
 ### ❌ Don’ts
 
 * Do **not change** any credentials.
+* Do **not enable** MFA on the Management Account.
 * Do **not change** any code, unless instructed to as this can cause errors.
 * Do **not deploy** resources beyond the defined scope.
 
@@ -168,6 +169,26 @@ This step has already been completed in preparation for the workshop. We used th
 * [03-control-tower](./03-control-tower): Deploys AWS Control Tower along with prerequisite IAM roles.
 
 > ℹ️ These steps are skipped during the workshop to save time and ensure all participants start with a consistent baseline.
+
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": "sts:AssumeRole",
+            "Resource": [
+                "arn:aws:iam::{{REPLACE_WITH_ACCOUNT_ID}}:role/service-role/AWSControlTower*"
+            ]
+        }
+    ]
+}
+
+```
+
+
 
 ### MakeFile
 
