@@ -1,0 +1,55 @@
+# Makefile.v2
+
+SHELL := /bin/bash
+ORG_DIR := 02-aws-organizations
+CT_DIR := 03-control-tower
+TFVARS := terraform.tfvars
+
+.PHONY: all validate-vars copy-vars plan-apply-org plan-apply-ct cleanup force-all
+
+# Run all steps and always cleanup at the end
+all:
+	@$(MAKE) -f Makefile.v2 force-all || true; $(MAKE) -f Makefile.v2 cleanup
+
+# Main pipeline logic
+force-all: validate-vars copy-vars plan-apply-org plan-apply-ct
+
+validate-vars:
+	@if [ ! -f $(TFVARS) ]; then \
+		echo "❌ terraform.tfvars not found in root directory."; \
+		exit 1; \
+	fi
+	@if ! grep -qE '^security_account_email[[:space:]]*=[[:space:]]*".+@.+\..+"' $(TFVARS); then \
+		echo "❌ Missing or invalid 'security_account_email' in terraform.tfvars."; \
+		exit 1; \
+	fi
+	@if ! grep -qE '^logging_account_email[[:space:]]*=[[:space:]]*".+@.+\..+"' $(TFVARS); then \
+		echo "❌ Missing or invalid 'logging_account_email' in terraform.tfvars."; \
+		exit 1; \
+	fi
+	@echo "✅ terraform.tfvars validated."
+
+copy-vars:
+	cp $(TFVARS) $(ORG_DIR)/
+	cp $(TFVARS) $(CT_DIR)/
+	@echo "✅ terraform.tfvars copied to module directories."
+
+plan-apply-org:
+	cd $(ORG_DIR) && terraform init -reconfigure && terraform plan -var-file=terraform.tfvars && terraform apply -var-file=terraform.tfvars -auto-approve
+	@echo "✅ Applied Terraform for aws-organizations."
+
+plan-apply-ct:
+	cd $(CT_DIR) && terraform init -reconfigure && terraform plan -var-file=terraform.tfvars && terraform apply -var-file=terraform.tfvars -auto-approve
+	@echo "✅ Applied Terraform for control-tower."
+
+cleanup:
+	@echo "🧹 Running cleanup..."
+
+	@echo "🧼 Removing terraform state and temporary files..."
+	@rm -f $(ORG_DIR)/terraform.tfvars $(CT_DIR)/terraform.tfvars
+
+	@echo "🗑️  Cleaning up .terraform and lock files..."
+	@rm -f $(ORG_DIR)/.terraform.lock.hcl $(CT_DIR)/.terraform.lock.hcl
+	@rm -rf $(ORG_DIR)/.terraform $(CT_DIR)/.terraform
+
+	@echo "✅ Cleanup completed successfully."
