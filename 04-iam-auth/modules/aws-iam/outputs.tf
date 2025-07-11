@@ -1,7 +1,7 @@
 output "sso_user_ids" {
   value = {
     for k, u in aws_identitystore_user.user :
-    k => u.user_id
+    k => u.user_id if !can(regex("@proton\\.me$", var.users[k].email))
   }
 }
 
