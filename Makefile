@@ -18,15 +18,25 @@ validate-vars:
 		echo "❌ terraform.tfvars not found in root directory."; \
 		exit 1; \
 	fi
-	@if ! grep -qE '^security_account_email[[:space:]]*=[[:space:]]*".+\+security@proton\.me"' $(TFVARS); then \
-		echo "❌ 'security_account_email' must end with +security@proton.me."; \
+	@if ! grep -qE '^security_account_email[[:space:]]*=[[:space:]]*".+@proton\.me"' $(TFVARS); then \
+		echo "❌ 'security_account_email' must be a valid @proton.me email."; \
 		exit 1; \
 	fi
-	@if ! grep -qE '^logging_account_email[[:space:]]*=[[:space:]]*".+\+logging@proton\.me"' $(TFVARS); then \
-		echo "❌ 'logging_account_email' must end with +logging@proton.me."; \
+	@if grep -qE '^security_account_email[[:space:]]*=[[:space:]]*"user\+security@proton\.me"' $(TFVARS); then \
+		echo "❌ 'security_account_email' must not be user+security@proton.me."; \
 		exit 1; \
 	fi
-	@echo "✅ terraform.tfvars validated: required emails are present and correctly formatted."
+	@if ! grep -qE '^logging_account_email[[:space:]]*=[[:space:]]*".+@proton\.me"' $(TFVARS); then \
+		echo "❌ 'logging_account_email' must be a valid @proton.me email."; \
+		exit 1; \
+	fi
+	@if grep -qE '^logging_account_email[[:space:]]*=[[:space:]]*"user\+logging@proton\.me"' $(TFVARS); then \
+		echo "❌ 'logging_account_email' must not be user+logging@proton.me."; \
+		exit 1; \
+	fi
+	@echo "✅ terraform.tfvars validated: emails are correct and 'user+...' is forbidden."
+
+
 
 copy-vars:
 	cp $(TFVARS) $(ORG_DIR)/
