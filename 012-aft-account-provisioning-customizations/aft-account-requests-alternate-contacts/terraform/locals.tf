@@ -56,25 +56,5 @@ locals {
         }
       }
     }
-    development = {
-      name              = "Development Account"
-      organization_unit = "Product"
-      email             = local.email_secrets["development_account_email"]
-      sso_email         = local.sso_user_email
-      first_name        = "Development"
-      last_name         = "User"
-      tags = {
-        "ABC:Environment" = "DEVELOPMENT"
-      }
-      customizations_name = "DEVELOPMENT"
-      alternate_contact = {
-        operations = {
-          "email-address" = "user+hop@mail.me"
-          "name"          = "Head of Product"
-          "phone-number"  = "+11234567890"
-          "title"         = "Head of Product"
-        }
-      }
-    }
   }
 }
