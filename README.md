@@ -55,6 +55,7 @@ You should have received credentials structured as follows:
 ### ❌ Don’ts
 
 * Do **not change** any credentials.
+* Do **not share** any credentials with anyone.
 * Do **not enable** MFA on the Management Account.
 * Do **not change** any code, unless instructed to as this can cause errors.
 * Do **not deploy** resources beyond the defined scope.
@@ -170,6 +171,7 @@ This step has already been completed in preparation for the workshop. We used th
 
 > ℹ️ These steps are skipped during the workshop to save time and ensure all participants start with a consistent baseline.
 
+**Please Ensure IAM CLI User has the below Inline Policy attached to them**
 
 ```json
 {
@@ -1029,7 +1031,7 @@ We'll use the repository: [09-aft-account-request](./09-aft-account-request/)
 
 We will:
 
-* **Provision a new Development Account** in the existing **Product OU**
+* **Provision a new Production Account** in the existing **Product OU**
 * **Import existing accounts** into AFT management:
 
   * Security Account (Security OU)
@@ -1048,9 +1050,8 @@ aft-account-secrets
 Use **Key/Value** pairs for the following values:
 
 * `security_account_email`: your existing security email (with `+` subaddressing)
-* `production_account_email`: your production email
+* `production_account_email`:  a **new** subaddressed email for the Production account
 * `logging_account_email`: your logging email
-* `development_account_email`: a **new** subaddressed email for the Dev account
 * `sso_user_email`: your main workshop email
 
 ![aft-account-secrets](./assets/aft-account-secrets.png)
@@ -1081,7 +1082,7 @@ In `locals.tf`, make sure to define the `customizations_name` — this tag is cr
 1. Go to **AWS Platform Account → CodePipeline**
 2. Run the `aft-account-request` pipeline manually
 3. Wait for it to complete (\~a few minutes)
-4. Then check your **Management Account** — the **Development Account** should appear as provisioning starts
+4. Then check your **Management Account** — the **Production Account** should appear as provisioning starts
 
 This confirms your AFT setup is working end-to-end for both **account creation** and **importing existing accounts**.
 
@@ -1096,9 +1097,8 @@ Now that our AWS accounts are fully managed by AFT, we can start applying **cust
 cd ./010-aft-account-customizations
 ```
 
-Inside, you’ll see two folders:
+Inside, you’ll see one folders:
 
-* `DEVELOPMENT`
 * `PRODUCTION`
 
 > 📝 The folder names **must match** the `customizations_name` value defined in your earlier AFT account request (case sensitive).
@@ -1107,11 +1107,9 @@ Copy these folders into your **`aft-account-customizations`** GitHub repository 
 
 #### 🎯 What This Deploys
 
-For **Development** and **Production** accounts:
+For **Production** accounts:
 
 1. An **AWS Budget**
-
-   * \$50 in Development
    * \$100 in Production
 2. A Terraform module: `yl-finance-infra`
 
@@ -1138,7 +1136,7 @@ To apply them post-deployment, we trigger them manually using AWS Step Functions
 ```
 
 4. Monitor the execution and associated **CodePipeline runs** in the Platform Account
-5. Check both **Development** and **Production accounts** for the results
+5. Check **Production accounts** for the results
 
 #### 🌐 OPTIONAL - React App Deployment
 
@@ -1263,7 +1261,7 @@ aft-account-request
 
 ### 🔍 Validation
 
-Check `locals.tf` in the request folder — you'll see alternate contact details configured for **Development** and **Production** accounts in the **Product OU**.
+Check `locals.tf` in the request folder — you'll see alternate contact details configured for **Production** accounts in the **Product OU**.
 
 * For example, the **Head of Product** is defined as the **Operations contact**
 
@@ -1286,7 +1284,7 @@ To validate the alternate contact setup:
 }
 ```
 
-2. Once complete, go to the **AWS Billing Dashboard** in both the **Development** and **Production** accounts
+2. Once complete, go to the **AWS Billing Dashboard** in **Production** account
 3. Confirm the **Alternate Contacts** have been updated according to the configuration
 
 ---
