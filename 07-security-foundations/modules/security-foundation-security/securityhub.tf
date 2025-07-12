@@ -25,7 +25,7 @@ resource "aws_securityhub_insight" "cirtical_high_risk_proudction_account" {
   filters {
     aws_account_id {
       comparison = "EQUALS"
-      value      = var.aws_production_account_id
+      value      = var.aws_platform_account_id
     }
     severity_label {
       comparison = "EQUALS"

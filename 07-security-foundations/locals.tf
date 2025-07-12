@@ -8,9 +8,9 @@ locals {
       account_id = var.logging_account_id
       email      = var.logging_account_email
     }
-    production = {
-      account_id = var.production_account_id
-      email      = var.production_account_email
+    platform = {
+      account_id = var.platform_account_id
+      email      = var.platform_account_email
     }
   }
 

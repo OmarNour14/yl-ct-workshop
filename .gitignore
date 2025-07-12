@@ -80,3 +80,4 @@ override.tf.json
 # example: *tfplan*
 
 .bucket_name
+**/**/.terraform.lock.hcl

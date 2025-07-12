@@ -1,5 +1,5 @@
-variable "product_ou_name" {
-  description = "Name of the product organizational unit"
+variable "platform_ou_name" {
+  description = "Name of the platform organizational unit"
   type        = string
-  default     = "Product"
+  default     = "Platform"
 }

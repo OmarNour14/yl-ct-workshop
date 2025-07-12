@@ -3,6 +3,7 @@ variable "delegated_security_services" {
   type        = list(string)
   default = [
     "access-analyzer.amazonaws.com",
+    "iam.amazonaws.com",
     "securityhub.amazonaws.com",
     "guardduty.amazonaws.com",
     "malware-protection.guardduty.amazonaws.com",
