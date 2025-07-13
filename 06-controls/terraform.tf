@@ -19,7 +19,7 @@ provider "aws" {
 ############################################################################
 
 # provider "aws" {
-#   alias   = "production"
-#   profile = "production"
+#   alias   = "platform"
+#   profile = "platform"
 #   region  = "eu-west-1"
 # }

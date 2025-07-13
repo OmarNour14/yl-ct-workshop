@@ -171,8 +171,9 @@ This step has already been completed in preparation for the workshop. We used th
 
 > ℹ️ These steps are skipped during the workshop to save time and ensure all participants start with a consistent baseline.
 
-**Please Ensure IAM CLI User has the below Inline Policy attached to them**
+**Please Ensure IAM CLI User has the below Inline Policies attached to them**
 
+- Assume_Control_Tower_Policy
 ```json
 {
     "Version": "2012-10-17",
@@ -187,11 +188,7 @@ This step has already been completed in preparation for the workshop. We used th
         }
     ]
 }
-
 ```
-
-
-
 ### MakeFile
 
 It includes three stages: Each step is automated using a `Makefile` to streamline setup and deployment.
@@ -438,7 +435,7 @@ terraform init
 terraform apply --auto-approve
 ```
 
-This will deploy all three types of controls to the **AWS Production Account** in the **Product OU**.
+This will deploy all three types of controls to the **AWS Platform Account** in the **Platform OU**.
 
 ---
 
@@ -447,11 +444,11 @@ This will deploy all three types of controls to the **AWS Production Account** i
 After the controls are deployed:
 
 1. Log in to the **AWS SSO console**
-2. Generate **temporary credentials** for the AWS Production Account
+2. Generate **temporary credentials** for the AWS Platform Account
 3. Add them to your `~/.aws/credentials` file under a new profile:
 
 ```ini
-[production]
+[platform]
 aws_access_key_id = AKXXXXXXXXXXXXXXXX
 aws_secret_access_key = UzJXXXXXXXXXXX
 ```
@@ -485,7 +482,7 @@ To proceed, you’ll need **CLI access** to the **Security Account**.
 We recommend one of the following methods:
 
 * **Create a dedicated IAM user in Security Account** with an Administrator policy and configure its credentials using the AWS CLI.
-* Or, **generate short-lived credentials** from the SSO console (as done with the Production Account) and paste them into your `~/.aws/credentials` file under the profile name `security`.
+* Or, **generate short-lived credentials** from the SSO console (as done with the Platform Account) and paste them into your `~/.aws/credentials` file under the profile name `security`.
 
 > ⚠️ Note: This module may take time to apply. If your credentials expire, simply re-fetch them.
 
@@ -511,8 +508,8 @@ management_account_email = "user@email.me"
 logging_account_email    = "user+logging@email.me"
 logging_account_id       = "123456789"
 
-production_account_email = "user+production@email.me"
-production_account_id    = "123456789"
+platform_account_email = "user+platform@email.me"
+platform_account_id    = "123456789"
 
 slack_channel_id         = "C07EZ1ABC23"
 slack_team_id            = "T07EA123LEP"
@@ -566,19 +563,20 @@ We’ll review these findings together in the live session.
 When using AWS Organizations, each member account still retains its own root user. That’s why part of your security foundation should be to centrally secure and restrict root user access across all accounts.
 
 To validate it works:
-Edit `./07-security-foundations/main.tf`, and in the `security_foundation_management` module, set:
+Edit `./07-security-foundations/main.tf`, and in the `security_foundation_security` module, set:
 
 ```hcl
 validate_org_root_features = true
 ```
 
-This will create an S3 bucket that can **only be deleted by the AWS Root user**. To delete the bucket, run the following commands:
+This will create an S3 bucket that can **only be deleted by the AWS Root user**. To delete the bucket, run the following commands in **AWS CloudShell Console** in the **Security Account**
 
 ```sh
-aws sts assume-root    \
-  --region us-east-1 \
+aws sts assume-root \
+  --region eu-west-1 \
+  --duration-seconds 900 \
   --target-principal <my member account id> \
-  --task-policy-arn arn:aws:iam::aws:policy/root-task/S3UnlockBucketPolicy
+  --task-policy-arn arn=arn:aws:iam::aws:policy/root-task/S3UnlockBucketPolicy
 ```
 
 ---
@@ -626,11 +624,20 @@ Expected output:
 
 ---
 
-#### Delete the S3 Bucket
+#### Delete the S3 Bucket Policy
 
 ```sh
 aws s3api delete-bucket-policy --bucket <bucket_name>
 ```
+#### Reset the Validation
+
+Edit `./07-security-foundations/main.tf`, and in the `security_foundation_security` module, set:
+
+```hcl
+validate_org_root_features = false
+```
+
+
 ---
 ### Guard Duty
 
@@ -653,11 +660,11 @@ aws s3api delete-bucket-policy --bucket <bucket_name>
 
 To validate that GuardDuty is working as expected:
 
-1. Log into the **AWS Production Account**.
+1. Log into the **AWS Platform Account**.
 2. Navigate to **GuardDuty** in the AWS Console.
 3. Use the console option to **generate sample findings**.
 4. Then, log into the **AWS Security Account** (GuardDuty admin account).
-5. In the Security Account's GuardDuty console, you should now see the **sample findings** from the Production Account.
+5. In the Security Account's GuardDuty console, you should now see the **sample findings** from the Platform Account.
 
 This confirms that all member account activity is being aggregated and monitored centrally from the Security Account.
 
@@ -753,7 +760,7 @@ module "security_foundation_security" {
 Sometimes it’s best to narrow your view to the most critical risks. For example:
 
 * Critical or High severity findings
-* In production or customer-facing accounts
+* In platform or customer-facing accounts
 
 To apply custom insights, enable the following variable in `./modules/security-foundation-security`:
 
@@ -980,6 +987,42 @@ github_organization      = "MY_GITHUB_ORG_NAME"
 > ⚠️ **AFT does not support monorepo setups.**
 
 You must push each directory to a **separate GitHub repo** under your account. Use the **exact same repo name** as the folder.
+### Exporting AFT Folders to GitHub Repos
+
+#### 🛠️ Step-by-Step Instructions
+
+1. Navigate to the AFT setup directory:
+
+```sh
+cd ./08-aft-setup
+```
+
+2. Make the export script executable:
+
+```sh
+chmod +x export_repos.sh
+```
+
+3. Run the script:
+
+```sh
+./export_repos.sh
+```
+
+This script will:
+
+* Copy the following 4 AFT folders to your desktop:
+
+  * `aft-account-request`
+  * `aft-account-customizations`
+  * `aft-global-customizations`
+  * `aft-account-provisioning-customizations`
+* Initialize and push each as a **GitHub repository**
+
+> ✅ You must have GitHub CLI or personal access token already configured on your system for this to work.
+
+Once complete, you should see all 4 repositories in your GitHub account and can proceed with linking them to the AFT module in your Terraform deployment.
+
 
 ---
 

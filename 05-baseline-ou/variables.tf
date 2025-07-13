@@ -1,7 +1,7 @@
 variable "platform_ou_name" {
   description = "Name of the product organizational unit"
   type        = string
-  default     = "Product"
+  default     = "Platform"
 }
 
 variable "platform_account_name" {

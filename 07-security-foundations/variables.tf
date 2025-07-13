@@ -1,7 +1,6 @@
 variable "security_account_id" {
   description = "AWS Account ID for the security account"
   type        = string
-  default     = "" # replace with actual security account ID
 }
 
 variable "management_account_email" {
@@ -22,17 +21,17 @@ variable "logging_account_email" {
   type        = string
 }
 
-variable "production_account_id" {
-  description = "AWS Account ID for the production account"
+variable "platform_account_id" {
+  description = "AWS Account ID for the platform account"
   type        = string
-  default     = "" # replace with actual production account ID
+  default     = "" # replace with actual platform account ID
 }
 
-
-variable "production_account_email" {
-  description = "Email address for the Production account"
+variable "platform_account_email" {
+  description = "Email address for the platform account"
   type        = string
 }
+
 
 variable "securityhub_aggregator_specified_regions" {
   description = "List of regions to enable Security Hub finding aggregator"

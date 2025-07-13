@@ -1,16 +1,22 @@
 variable "external_account_id" {
   type    = string
-  default = "123456789012" # replace with actual external account ID
+  default = "111122223333" # replace with actual external account ID
 }
 
-variable "aws_production_account_id" {
-  description = "AWS Account ID for the production account"
+variable "aws_platform_account_id" {
+  description = "AWS Account ID for the platform account"
   type        = string
 }
 
 variable "aws_management_account_id" {
   description = "AWS Account ID for the management account"
   type        = string
+}
+
+variable "validate_org_root_features" {
+  description = "Flag to enable org root feature validation"
+  type        = bool
+  default     = false
 }
 
 variable "validate_iam_access_analyzer" {
