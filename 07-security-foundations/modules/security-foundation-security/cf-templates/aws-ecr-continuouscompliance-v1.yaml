@@ -293,7 +293,7 @@ Resources:
       ServiceToken: !GetAtt CreateSecurityHubCustomActionTargetLambda.Arn
       Name: ECR1
       Description: Deny Access to ECR
-      Id: ECR11
+      Id: ECR1
 
   ECRAccessProhibitedLambdaPermission:
     Type: AWS::Lambda::Permission
