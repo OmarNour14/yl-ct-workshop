@@ -987,6 +987,42 @@ github_organization      = "MY_GITHUB_ORG_NAME"
 > ⚠️ **AFT does not support monorepo setups.**
 
 You must push each directory to a **separate GitHub repo** under your account. Use the **exact same repo name** as the folder.
+### Exporting AFT Folders to GitHub Repos
+
+#### 🛠️ Step-by-Step Instructions
+
+1. Navigate to the AFT setup directory:
+
+```sh
+cd ./08-aft-setup
+```
+
+2. Make the export script executable:
+
+```sh
+chmod +x export_repos.sh
+```
+
+3. Run the script:
+
+```sh
+./export_repos.sh
+```
+
+This script will:
+
+* Copy the following 4 AFT folders to your desktop:
+
+  * `aft-account-request`
+  * `aft-account-customizations`
+  * `aft-global-customizations`
+  * `aft-account-provisioning-customizations`
+* Initialize and push each as a **GitHub repository**
+
+> ✅ You must have GitHub CLI or personal access token already configured on your system for this to work.
+
+Once complete, you should see all 4 repositories in your GitHub account and can proceed with linking them to the AFT module in your Terraform deployment.
+
 
 ---
 
