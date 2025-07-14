@@ -321,12 +321,96 @@ https://d-92312321321.awsapps.com/
 ```
 
 ---
-
 ### 🛠️ Complete Manual Configuration in Teleport
 
-1. **Sign in** to your Teleport tenant using the link provided.
-2. Follow the official Teleport guide here: [Azure AD SAML Setup - Step 2/3](https://goteleport.com/docs/admin-guides/access-controls/sso/azuread/#prerequisites)
-3. Then, complete the IAM Identity Center setup via: [AWS IAM Identity Center Guide](https://goteleport.com/docs/admin-guides/management/guides/aws-iam-identity-center/guide/)
+Follow these steps to configure Azure Entra ID with your Teleport cluster.
+
+---
+
+#### 1. Create Your Teleport Cluster
+
+Sign up for a new Teleport cluster:
+👉 [https://goteleport.com/signup/](https://goteleport.com/signup/)
+
+> ⚠️ Please use your **main email address**, not your Microsoft/Entra email for registration.
+
+---
+
+#### 2. Create the Azure Connector Configuration File
+
+Create a file named `azure-connector.yaml`:
+
+```yaml
+kind: saml
+metadata:
+  name: ad
+spec:
+  acs: https://{{REPLACE_WITH_TELEPORT_URL}}:443/v1/webapi/saml/acs/ad
+  attributes_to_roles:
+  - name: http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name
+    roles:
+    - access
+    - editor
+    value: {{REPLACE_WITH_AZURE_ENTRA_EMAIL}}
+  audience: https://{{REPLACE_WITH_TELEPORT_URL}}:443/v1/webapi/saml/acs/ad
+  cert: ""
+  display: Microsoft
+  entity_descriptor: ""
+  entity_descriptor_url: {{REPLACE_WITH_ENTITY_URL}}
+  issuer: ""
+  service_provider_issuer: https://{{REPLACE_WITH_TELEPORT_URL}}:443/v1/webapi/saml/acs/ad
+  sso: ""
+```
+
+Replace the placeholders with the following values:
+
+* `{{REPLACE_WITH_TELEPORT_URL}}`: URL of your Teleport cluster (from step 1)
+* `{{REPLACE_WITH_AZURE_ENTRA_EMAIL}}`: Your assigned Azure Entra email address
+* `{{REPLACE_WITH_ENTITY_URL}}`: Go to **Azure Portal > Enterprise Application > Single Sign-On > SAML Certificates** and copy the **App Federation Metadata URL**
+
+---
+
+#### 3. Login to Teleport via CLI
+
+```sh
+tsh login --proxy=<YOUR_TELEPORT_URL>.teleport.sh:443 --auth=local --user=<YOUR_EMAIL>@proton.me
+```
+
+> Replace placeholders with your actual proxy URL and email
+
+---
+
+#### 4. Test the Entra ID SSO Connector
+
+```sh
+cat azure-connector.yaml | tctl sso test
+```
+
+This will check the validity of your Azure SAML configuration.
+
+---
+
+#### 5. Create the Connector
+
+```sh
+tctl create -f azure-connector.yaml
+```
+
+You should see a success message confirming the connection is valid.
+
+✅ Your **Entra ID x Teleport** integration is now complete!
+
+---
+
+#### 6. Next Step: Integrate with IAM Identity Center
+
+Follow the official guide here:
+👉 [https://goteleport.com/docs/admin-guides/management/guides/aws-iam-identity-center/guide/](https://goteleport.com/docs/admin-guides/management/guides/aws-iam-identity-center/guide/)
+
+
+
+
+
 
 ---
 

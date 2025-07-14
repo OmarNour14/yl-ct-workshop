@@ -12,8 +12,9 @@ resource "aws_identitystore_group_membership" "membership" {
     "${user_key}-${user.role}" => {
       user_key = user_key
       role     = user.role
-    } if !can(regex("@proton\\.me$", user.email))
+    }
   }
+
 
   identity_store_id = var.identity_store_id
   group_id          = aws_identitystore_group.group[each.value.role].group_id
