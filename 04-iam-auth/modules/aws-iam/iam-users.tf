@@ -1,9 +1,5 @@
 resource "aws_identitystore_user" "user" {
-  for_each = {
-    for k, v in var.users :
-    k => v if !can(regex("@proton\\.me$", v.email))
-  }
-
+  for_each          = var.users
   identity_store_id = var.identity_store_id
   display_name      = each.value.display_name
   user_name         = each.value.user_principal_name

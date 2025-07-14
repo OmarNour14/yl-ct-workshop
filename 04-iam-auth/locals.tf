@@ -1,6 +1,28 @@
 locals {
   suffix = random_pet.user_suffix.id
-  identity_users = {
+  identity_users_aws = {
+    jane = {
+      user_principal_name = "jane.smith.${local.suffix}@youlend.com"
+      display_name        = "Jane Smith ${local.suffix}"
+      given_name          = "Jane"
+      surname             = "Smith"
+      email               = "jane.smith.${local.suffix}@youlend.com"
+      mail_nickname       = "jane.smith.${local.suffix}"
+      role                = "platform"
+      azure_ad_user_type  = "Guest"
+    },
+    john = {
+      user_principal_name = "john.doe.${local.suffix}@youlend.com"
+      display_name        = "John Doe ${local.suffix}"
+      given_name          = "John"
+      surname             = "Doe"
+      email               = "john.doe.${local.suffix}@youlend.com"
+      mail_nickname       = "john.doe.${local.suffix}"
+      role                = "product"
+      azure_ad_user_type  = "Guest"
+    }
+  }
+  identity_users_azure = {
     admin = {
       user_principal_name = var.user_email
       display_name        = "${var.user_first_name} ${var.user_last_name}"
@@ -32,6 +54,7 @@ locals {
       azure_ad_user_type  = "Guest"
     }
   }
+
   identity_users_roles = {
     platform = "Platform"
     product  = "Product"
