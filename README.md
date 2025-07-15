@@ -1437,6 +1437,7 @@ Update the following value using your Datadog API key (available from the provid
 
 ```hcl
 datadog_api_key = "XXXXXXXXXXXXXXXXXXXXXX"
+datadog_app_key = XXXXXXXXXXXXXXXXXXXXXX
 ```
 
 

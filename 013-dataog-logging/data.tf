@@ -1,3 +1,3 @@
-data "aws_kms_key" "by_alias" {
-  key_id = "alias/control-tower-kms-key-logging"
-}
+data "aws_organizations_organization" "org" {}
+
+data "aws_caller_identity" "current" {}
